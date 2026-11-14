@@ -4,5 +4,5 @@ requirements-filtered.txt
 __pycache__/
 *.wav
 out/
-models/
+
 *.zip
