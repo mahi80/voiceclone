@@ -3,18 +3,35 @@
 Turns the speaker's microphone into a target voice (your voice) live, and feeds it
 to Microsoft Teams through a virtual audio cable.
 
+**Chosen path: RVC v2, trained on 15 min of the target voice, run by VCClient.**
+
+```
+his headset mic -> VCClient (Mahi.pth) -> CABLE Input -> Teams mic = CABLE Output
+```
+
+- Model: RVC v2, 40 kHz, F0-guided, 300 epochs (235 slices, 15 min dataset).
+- Weights live in `models/Mahi/` (not committed — binaries): `Mahi.pth` + index.
+- Inference on the friend's laptop needs **no NVIDIA GPU** — VCClient's DirectML
+  build runs on any DX12 GPU (Intel iGPU included), fallback CPU mode.
+- Setup instructions for the person in the call: [teams-handoff.md](teams-handoff.md).
+
+This beats the original zero-shot route because a trained model holds timbre far
+better at conversation length and runs without CUDA. The Seed-VC zero-shot kit
+below is kept only as a fallback for NVIDIA machines.
+
+Reported latency: ~0.2–0.4 s conversion + ~0.1–0.2 s cable/Teams buffering.
+Budget roughly 0.5 s turnaround — sounds "dubbed", not natural.
+
+---
+
+## Fallback: Seed-VC zero-shot (needs NVIDIA CUDA)
+
 Engine: [Seed-VC](https://github.com/Plachtaa/seed-vc) real-time mode (zero-shot:
-no training, uses a 10-30 s reference clip). The engine already implements the
-hard parts — SOLA overlap-add chunk stitching, VAD gating, crossfade — so this
-folder wraps it with setup, reference prep, device listing and Teams wiring
-instead of reimplementing the DSP.
+no training, uses a 10-30 s reference clip).
 
 ```
 his headset mic -> seed-vc realtime -> CABLE Input -> Teams mic = CABLE Output
 ```
-
-Reported latency: ~300 ms algorithm + ~100 ms device on an RTX 3060, plus Teams'
-own processing. Budget roughly 0.5 s turnaround — sounds "dubbed", not natural.
 
 ## Requirements
 
